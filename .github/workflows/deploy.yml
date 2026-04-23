@@ -36,7 +36,6 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT }}
           username: ${{ secrets.HOSTINGER_USERNAME }}
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          passphrase: ${{ secrets.HOSTINGER_PASSPHRASE }}
           source: ".next/standalone/*"
           target: "~/primolocal-app/"
           strip_components: 1
@@ -49,7 +48,6 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT }}
           username: ${{ secrets.HOSTINGER_USERNAME }}
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          passphrase: ${{ secrets.HOSTINGER_PASSPHRASE }}
           script: |
             export PATH=/opt/alt/alt-nodejs24/root/usr/bin:$PATH
             cd ~/primolocal-app
