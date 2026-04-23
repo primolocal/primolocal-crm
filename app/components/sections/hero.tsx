@@ -26,21 +26,21 @@ export function Hero() {
           You see the number before you pay.
         </p>
 
-        {/* CTA Group */}
+        {/* CTA Group — Demo first, then calculator */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+          <a
+            href="tel:8327370525"
+            className="btn-primary text-lg px-8 py-4 w-full sm:w-auto"
+          >
+            <Phone className="w-5 h-5 mr-2 inline" />
+            📞 Hear Novo Answer — (832) 737-0525
+          </a>
           <Link
             href="#calculator"
-            className="btn-primary text-lg px-8 py-4 w-full sm:w-auto"
+            className="btn-secondary text-lg px-8 py-4 w-full sm:w-auto"
           >
             Calculate Your Loss →
           </Link>
-          <a
-            href="tel:8327370525"
-            className="btn-secondary text-lg px-8 py-4 w-full sm:w-auto"
-          >
-            <Phone className="w-5 h-5 mr-2 inline" />
-            Call (832) 737-0525
-          </a>
         </div>
 
         {/* Trust Bar */}
@@ -64,6 +64,11 @@ export function Hero() {
             Houston HVAC Only
           </span>
         </div>
+
+        {/* Sub-note */}
+        <p className="text-center text-sm text-text-muted mt-6">
+          She answers in under 30 seconds. Books a fake appointment on the spot. Then you know what your customers hear.
+        </p>
 
         {/* Scroll Indicator */}
         <div className="mt-16">

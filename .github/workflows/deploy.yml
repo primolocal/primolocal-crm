@@ -1,0 +1,67 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js app
+        run: npm run build
+
+      - name: Prepare standalone output
+        run: |
+          cp -r .next/static .next/standalone/.next/static
+          cp -r public .next/standalone/public 2>/dev/null || true
+
+      - name: Deploy to Hostinger
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          port: ${{ secrets.HOSTINGER_PORT }}
+          username: ${{ secrets.HOSTINGER_USERNAME }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          passphrase: ${{ secrets.HOSTINGER_PASSPHRASE }}
+          source: ".next/standalone/*"
+          target: "~/primolocal-app/"
+          strip_components: 1
+          rm: true
+
+      - name: Restart server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          port: ${{ secrets.HOSTINGER_PORT }}
+          username: ${{ secrets.HOSTINGER_USERNAME }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          passphrase: ${{ secrets.HOSTINGER_PASSPHRASE }}
+          script: |
+            export PATH=/opt/alt/alt-nodejs24/root/usr/bin:$PATH
+            cd ~/primolocal-app
+            pkill -9 -f node || true
+            sleep 2
+            export NODE_ENV=production
+            export PORT=3000
+            export SMTP_HOST=smtp.gmail.com
+            export SMTP_PORT=587
+            export SMTP_USER=tommy@primolocal.org
+            export SMTP_PASS='qjkw aqgq bzkq ojyz'
+            export NOTIFY_EMAIL=tommy@primolocal.org
+            setsid node server.js > server.log 2>&1 < /dev/null &
+            sleep 5
+            curl -s -o /dev/null -w "HTTP: %{http_code}\n" http://localhost:3000/
