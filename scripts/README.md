@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A systematic way to find, score, and prioritize home service businesses in Houston for PrimoLocal partnership outreach. Uses the official Google Places API — no scraping, no CAPTCHAs, no blocked IPs.
+A systematic way to find, score, and prioritize home service businesses in Houston for PrimoLocal annual service outreach. Uses the official Google Places API — no scraping, no CAPTCHAs, no blocked IPs.
 
 ---
 
@@ -15,9 +15,9 @@ A systematic way to find, score, and prioritize home service businesses in Houst
 3. Enable the **Places API (New)**
 4. Create an API key under **Credentials**
 5. Set environment variable:
-   ```bash
-   export GOOGLE_PLACES_API_KEY=your_key_here
-   ```
+  ```bash
+  export GOOGLE_PLACES_API_KEY=your_key_here
+  ```
 
 **Cost:** ~$5 per 1,000 requests. Each category search returns ~60 results across 3 pages. Full run = ~240 businesses = ~$1.20.
 
@@ -104,7 +104,7 @@ python scripts/revenue-estimator.py
 
 > "Hi [Name], this is Tommy with PrimoLocal. I'm calling because I noticed [Business Name] has [X] Google reviews, which tells me you're doing real volume. Quick question — are you currently missing calls while you're on jobs?"
 
-> "I work with Houston contractors who are tired of losing jobs to voicemail. I built an AI receptionist called Piper that answers every call, books appointments directly into your calendar, and works 24/7. I'm selecting 10 partners for a 30-day prove-it period — completely free. If it doesn't work, you walk away with zero charge."
+> "I work with Houston contractors who are tired of losing jobs to voicemail. I built a revenue recovery agent called Piper that answers every call, books appointments directly into your calendar, and works 24/7. I'm selecting 10 clients for a 30-day prove-it period — completely free. If it doesn't work, you walk away with zero charge."
 
 > "The application takes 5 minutes. I'll review it within 24 hours and call you back. Sound fair?"
 

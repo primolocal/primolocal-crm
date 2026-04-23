@@ -9,16 +9,16 @@ alter table events enable row level security;
 -- This is a shared team CRM: every team member sees and edits the same data
 
 create policy "Allow full access to authenticated users"
-  on contacts for all to authenticated using (true) with check (true);
+ on contacts for all to authenticated using (true) with check (true);
 
 create policy "Allow full access to authenticated users"
-  on deals for all to authenticated using (true) with check (true);
+ on deals for all to authenticated using (true) with check (true);
 
 create policy "Allow full access to authenticated users"
-  on tasks for all to authenticated using (true) with check (true);
+ on tasks for all to authenticated using (true) with check (true);
 
 create policy "Allow full access to authenticated users"
-  on activities for all to authenticated using (true) with check (true);
+ on activities for all to authenticated using (true) with check (true);
 
 create policy "Allow full access to authenticated users"
-  on events for all to authenticated using (true) with check (true);
+ on events for all to authenticated using (true) with check (true);

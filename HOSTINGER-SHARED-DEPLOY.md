@@ -44,19 +44,19 @@ tar -xzf primolocal-deploy.tar.gz -C primolocal-app/
 ### Option B: FTP (FileZilla / Any FTP Client)
 
 1. Connect with:
-   - **Host:** 89.116.192.81
-   - **User:** u652263405
-   - **Password:** your Hostinger password
-   - **Port:** 21
+  - **Host:** 89.116.192.81
+  - **User:** u652263405
+  - **Password:** your Hostinger password
+  - **Port:** 21
 
 2. Create a folder `primolocal-app` in the home directory (NOT inside `public_html`)
 3. Upload ALL contents of `.next/standalone/` into `primolocal-app/`
-   - `server.js`
-   - `.next/` folder
-   - `public/` folder
-   - `node_modules/`
-   - `package.json`
-   - `.env.local`
+  - `server.js`
+  - `.next/` folder
+  - `public/` folder
+  - `node_modules/`
+  - `package.json`
+  - `.env.local`
 
 ---
 
@@ -99,10 +99,10 @@ In hPanel Node.js settings:
 1. Click **Restart**
 2. Wait 10-20 seconds
 3. Click **Run NPM Install** (if button available) OR SSH in and run:
-   ```bash
-   cd ~/primolocal-app
-   npm install --production
-   ```
+  ```bash
+  cd ~/primolocal-app
+  npm install --production
+  ```
 
 ---
 

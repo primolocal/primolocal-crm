@@ -1,36 +1,50 @@
-import { Geist, Geist_Mono } from "next/font/google"
+import type { Metadata } from "next";
+import { Inter, Montserrat } from "next/font/google";
+import "./globals.css";
 
-import "./globals.css"
-import { AuthProvider } from "@/components/auth-provider"
-import { RouteGuard } from "@/components/route-guard"
-import { Shell } from "@/components/shell"
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'})
-
-const fontMono = Geist_Mono({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-mono",
-})
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: "PrimoLocal — Revenue Recovery for Houston HVAC",
+  description:
+    "Houston HVAC contractors lose $47K/year to voicemail. Novo recovers after-hours revenue. 14-Day Prove-It on your line. Zero cost. 5 spots only.",
+  openGraph: {
+    title: "PrimoLocal — Revenue Recovery for Houston HVAC",
+    description:
+      "Stop losing after-hours repair calls to voicemail. Novo answers 24/7, books appointments, forwards emergencies. 14-Day Prove-It, zero cost.",
+    url: "https://primolocal.org",
+    siteName: "PrimoLocal",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PrimoLocal — Revenue Recovery for Houston HVAC",
+    description:
+      "Stop losing after-hours repair calls to voicemail. 14-Day Prove-It, zero cost.",
+  },
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
-    >
-      <body>
-        <AuthProvider>
-          <RouteGuard>
-            <Shell>{children}</Shell>
-          </RouteGuard>
-        </AuthProvider>
+    <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
+      <body className="font-sans antialiased bg-white text-slate-900">
+        {children}
       </body>
     </html>
-  )
+  );
 }
