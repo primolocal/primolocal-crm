@@ -18,65 +18,67 @@ export async function POST(req: NextRequest) {
       ownerName,
       email,
       phone,
-      revenue,
-      receptionist,
       missedCalls,
-      bottleneck,
-      commitment,
-      whyPartner,
+      avgJobValue,
+      voicemailResult,
+      timeline,
       fitScore,
     } = data;
 
     // Determine quality
     let qualityEmoji = "⚪";
     let qualityLabel = "Review";
-    if (fitScore >= 8) {
+    if (fitScore >= 6) {
       qualityEmoji = "🟢";
-      qualityLabel = "High Quality";
-    } else if (fitScore <= 4) {
+      qualityLabel = "High Pain";
+    } else if (fitScore <= 2) {
       qualityEmoji = "🔴";
-      qualityLabel = "Low Quality";
+      qualityLabel = "Low Pain";
     }
-
-    const revenueLabels: Record<string, string> = {
-      "under-250k": "Under $250K",
-      "250k-500k": "$250K - $500K",
-      "500k-1m": "$500K - $1M",
-      "1m-2m": "$1M - $2M",
-      "2m-plus": "$2M+",
-    };
 
     const missedCallsLabels: Record<string, string> = {
       "0-5": "0-5",
       "6-15": "6-15",
       "16-30": "16-30",
       "30-plus": "30+",
-      "dont-know": "Don't track",
+      "dont-know": "Doesn't know",
     };
 
-    const commitmentLabels: Record<string, string> = {
-      "yes-committed": "Yes, committed",
-      "need-more-info": "Need more info",
-      "not-sure": "Not sure",
+    const avgJobLabels: Record<string, string> = {
+      "under-500": "Under $500",
+      "500-1k": "$500 - $1,000",
+      "1k-3k": "$1,000 - $3,000",
+      "3k-plus": "$3,000+",
+    };
+
+    const voicemailLabels: Record<string, string> = {
+      "hang-up": "Most hang up",
+      "leave-message": "Some leave message",
+      "dont-know": "Doesn't know",
+    };
+
+    const timelineLabels: Record<string, string> = {
+      asap: "ASAP",
+      "this-month": "This month",
+      "next-month": "Next month",
+      "just-looking": "Just looking",
     };
 
     // Send Discord notification
     const discordMessage = {
-      content: `${qualityEmoji} **${qualityLabel} Application** | Score: ${fitScore}/10`,
+      content: `${qualityEmoji} **${qualityLabel} Lead** | Score: ${fitScore}/7`,
       embeds: [{
         title: `${businessName}`,
-        description: "New Co-Founder Program Application",
-        color: fitScore >= 8 ? 0x00ff00 : fitScore <= 4 ? 0xff0000 : 0xffa500,
+        description: "New Application",
+        color: fitScore >= 6 ? 0x00ff00 : fitScore <= 2 ? 0xff0000 : 0xffa500,
         fields: [
           { name: "Owner", value: ownerName, inline: true },
           { name: "Email", value: email, inline: true },
           { name: "Phone", value: phone, inline: true },
-          { name: "Revenue", value: revenueLabels[revenue] || revenue, inline: true },
-          { name: "Current Setup", value: receptionist.replace(/-/g, " "), inline: true },
           { name: "Missed Calls", value: missedCallsLabels[missedCalls] || missedCalls, inline: true },
-          { name: "Commitment", value: commitmentLabels[commitment] || commitment, inline: false },
-          { name: "Bottleneck", value: bottleneck.substring(0, 500), inline: false },
-          { name: "Why Partner", value: whyPartner.substring(0, 500), inline: false },
+          { name: "Avg Ticket", value: avgJobLabels[avgJobValue] || avgJobValue, inline: true },
+          { name: "Voicemail", value: voicemailLabels[voicemailResult] || voicemailResult, inline: true },
+          { name: "Timeline", value: timelineLabels[timeline] || timeline, inline: false },
         ],
         timestamp: new Date().toISOString(),
       }],
@@ -103,29 +105,24 @@ export async function POST(req: NextRequest) {
       });
 
       const emailHtml = `
-        <h2>New Co-Founder Application — ${qualityLabel} (${fitScore}/10)</h2>
+        <h2>New Lead — ${qualityLabel} (${fitScore}/7)</h2>
         <p><strong>Business:</strong> ${businessName}</p>
         <p><strong>Owner:</strong> ${ownerName}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Phone:</strong> ${phone}</p>
-        <p><strong>Revenue:</strong> ${revenueLabels[revenue] || revenue}</p>
-        <p><strong>Current Setup:</strong> ${receptionist.replace(/-/g, " ")}</p>
-        <p><strong>Missed Calls:</strong> ${missedCallsLabels[missedCalls] || missedCalls}</p>
-        <p><strong>Commitment:</strong> ${commitmentLabels[commitment] || commitment}</p>
         <hr/>
-        <p><strong>Bottleneck:</strong></p>
-        <p>${bottleneck.replace(/\n/g, "<br/>")}</p>
+        <p><strong>Missed Calls/Week:</strong> ${missedCallsLabels[missedCalls] || missedCalls}</p>
+        <p><strong>Avg Ticket:</strong> ${avgJobLabels[avgJobValue] || avgJobValue}</p>
+        <p><strong>Voicemail Result:</strong> ${voicemailLabels[voicemailResult] || voicemailResult}</p>
+        <p><strong>Timeline:</strong> ${timelineLabels[timeline] || timeline}</p>
         <hr/>
-        <p><strong>Why Partner:</strong></p>
-        <p>${whyPartner.replace(/\n/g, "<br/>")}</p>
-        <hr/>
-        <p><a href="mailto:${email}?subject=Re: Co-Founder Application — ${businessName}">Reply to applicant</a></p>
+        <p><a href="mailto:${email}?subject=Re: Your Missed Call Numbers — ${businessName}">Reply to lead</a></p>
       `;
 
       await transporter.sendMail({
-        from: `"PrimoLocal Applications" <${SMTP_USER}>`,
+        from: `"PrimoLocal Leads" <${SMTP_USER}>`,
         to: NOTIFY_EMAIL,
-        subject: `[${qualityLabel}] ${businessName} — Co-Founder Application`,
+        subject: `[${qualityLabel}] ${businessName} — New Lead`,
         html: emailHtml,
       });
     }

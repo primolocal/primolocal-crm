@@ -16,14 +16,12 @@ export default function ApplyPage() {
     ownerName: "",
     email: "",
     phone: "",
-    revenue: "",
-    receptionist: "",
     missedCalls: "",
-    bottleneck: "",
-    commitment: "",
-    whyPartner: "",
+    avgJobValue: "",
+    voicemailResult: "",
+    timeline: "",
   });
-  
+
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -33,17 +31,15 @@ export default function ApplyPage() {
     setSubmitting(true);
     setError("");
 
-    // Calculate fit score
+    // Calculate fit score based on pain
     let score = 0;
-    if (["1m-2m", "2m-plus"].includes(formData.revenue)) score += 3;
-    else if (["500k-1m"].includes(formData.revenue)) score += 2;
-    
-    if (["30-plus", "16-30"].includes(formData.missedCalls)) score += 2;
-    else if (["6-15"].includes(formData.missedCalls)) score += 1;
-    
-    if (formData.bottleneck.length > 100) score += 2;
-    if (formData.whyPartner.length > 100) score += 2;
-    if (formData.commitment === "yes-committed") score += 2;
+    if (["16-30", "30-plus"].includes(formData.missedCalls)) score += 3;
+    else if (["6-15"].includes(formData.missedCalls)) score += 2;
+
+    if (["3k-plus"].includes(formData.avgJobValue)) score += 2;
+    else if (["1k-3k"].includes(formData.avgJobValue)) score += 1;
+
+    if (formData.voicemailResult === "hang-up") score += 2;
 
     const applicationData = {
       ...formData,
@@ -53,7 +49,6 @@ export default function ApplyPage() {
     };
 
     try {
-      // Submit to webhook (will notify Discord + save to database)
       const response = await fetch("/api/webhooks/application", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -61,7 +56,7 @@ export default function ApplyPage() {
       });
 
       if (!response.ok) throw new Error("Submission failed");
-      
+
       setSubmitted(true);
     } catch (err) {
       setError("Failed to submit. Please try again or text (832) 737-0525.");
@@ -79,10 +74,10 @@ export default function ApplyPage() {
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />
               <h2 className="text-2xl font-bold mb-4">Application Received</h2>
               <p className="text-muted-foreground mb-2">
-                Thanks for applying to the Co-Founder Program.
+                We'll review your numbers and call you within 24 hours.
               </p>
               <p className="text-muted-foreground mb-6">
-                We review applications within 24 hours. If you're a fit, we'll send you a link to schedule your discovery call.
+                If Piper can capture even half your missed calls, the math works. Let's find out.
               </p>
               <div className="bg-muted p-4 rounded-lg">
                 <p className="text-sm font-medium">Questions? Text or call:</p>
@@ -101,52 +96,22 @@ export default function ApplyPage() {
         {/* Header */}
         <div className="text-center mb-10">
           <Badge variant="outline" className="mb-4 px-3 py-1 text-sm">
-            Co-Founder Program
+            60-Second Application
           </Badge>
           <h1 className="text-4xl font-bold mb-4">
-            Apply to Co-Found the Future of Contractor AI
+            Let's Run the Numbers
           </h1>
           <p className="text-xl text-muted-foreground">
-            Not a pilot. Not a beta. A partnership.
+            No pitch. Just math. We'll call you in 24 hours with what Piper could have captured.
           </p>
-          <div className="mt-6 flex items-center justify-center gap-2">
-            <Badge variant="secondary" className="text-lg px-4 py-2">
-              🔥 7 of 10 spots remaining
-            </Badge>
-          </div>
         </div>
 
-        {/* Qualification Card */}
-        <Card className="mb-8 border-primary/20">
-          <CardHeader>
-            <CardTitle>Who This Is For</CardTitle>
-            <CardDescription>Before applying, make sure you qualify:</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {[
-                "HVAC, plumbing, electrical, or roofing doing $500K+ revenue",
-                "Willing to trust Piper as your first line of phone defense",
-                "Have a receptionist now (or had one recently)",
-                "Track your numbers (close rate, ticket average)",
-                "Owner makes decisions — no gatekeepers",
-                "Investing in growth, not survival",
-              ].map((item, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* Application Form */}
+        {/* The Form */}
         <Card>
           <CardHeader>
-            <CardTitle>The Application</CardTitle>
+            <CardTitle>Your Business</CardTitle>
             <CardDescription>
-              Takes 5 minutes. Honest answers — we're selecting partners, not just filling spots.
+              Takes 60 seconds. We use this to prep your numbers for the call.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -163,7 +128,7 @@ export default function ApplyPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="ownerName">Owner Name *</Label>
+                  <Label htmlFor="ownerName">Your Name *</Label>
                   <Input
                     id="ownerName"
                     required
@@ -196,113 +161,88 @@ export default function ApplyPage() {
                 </div>
               </div>
 
-              {/* Revenue */}
-              <div className="space-y-2">
-                <Label htmlFor="revenue">Annual Revenue *</Label>
-                <p className="text-xs text-muted-foreground">Honest answer. This helps us understand if we're a fit.</p>
-                <Select
-                  required
-                  value={formData.revenue}
-                  onValueChange={(value) => setFormData({ ...formData, revenue: value ?? "" })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select range..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="under-250k">Under $250K</SelectItem>
-                    <SelectItem value="250k-500k">$250K - $500K</SelectItem>
-                    <SelectItem value="500k-1m">$500K - $1M</SelectItem>
-                    <SelectItem value="1m-2m">$1M - $2M</SelectItem>
-                    <SelectItem value="2m-plus">$2M+</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <div className="border-t pt-6">
+                <h3 className="font-semibold text-lg mb-4">The Numbers</h3>
 
-              {/* Receptionist Setup */}
-              <div className="space-y-2">
-                <Label htmlFor="receptionist">Who currently answers your phones? *</Label>
-                <Select
-                  required
-                  value={formData.receptionist}
-                  onValueChange={(value) => setFormData({ ...formData, receptionist: value ?? "" })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="me-owner">I do (owner)</SelectItem>
-                    <SelectItem value="office-manager">Office manager</SelectItem>
-                    <SelectItem value="receptionist">Dedicated receptionist</SelectItem>
-                    <SelectItem value="answering-service">Answering service</SelectItem>
-                    <SelectItem value="voicemail">Voicemail / Miss most calls</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                {/* Missed Calls */}
+                <div className="space-y-2">
+                  <Label htmlFor="missedCalls">How many calls did you miss last week? *</Label>
+                  <Select
+                    required
+                    value={formData.missedCalls}
+                    onValueChange={(value) => setFormData({ ...formData, missedCalls: value ?? "" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Estimate..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0-5">0-5</SelectItem>
+                      <SelectItem value="6-15">6-15</SelectItem>
+                      <SelectItem value="16-30">16-30</SelectItem>
+                      <SelectItem value="30-plus">30+</SelectItem>
+                      <SelectItem value="dont-know">I don't know — that's the problem</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* Missed Calls */}
-              <div className="space-y-2">
-                <Label htmlFor="missedCalls">How many calls did you miss last week? *</Label>
-                <Select
-                  required
-                  value={formData.missedCalls}
-                  onValueChange={(value) => setFormData({ ...formData, missedCalls: value ?? "" })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Estimate..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0-5">0-5</SelectItem>
-                    <SelectItem value="6-15">6-15</SelectItem>
-                    <SelectItem value="16-30">16-30</SelectItem>
-                    <SelectItem value="30-plus">30+</SelectItem>
-                    <SelectItem value="dont-know">I don't track this</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                {/* Average Job Value */}
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="avgJobValue">What's your average ticket? *</Label>
+                  <Select
+                    required
+                    value={formData.avgJobValue}
+                    onValueChange={(value) => setFormData({ ...formData, avgJobValue: value ?? "" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select range..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="under-500">Under $500</SelectItem>
+                      <SelectItem value="500-1k">$500 - $1,000</SelectItem>
+                      <SelectItem value="1k-3k">$1,000 - $3,000</SelectItem>
+                      <SelectItem value="3k-plus">$3,000+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* Bottleneck */}
-              <div className="space-y-2">
-                <Label htmlFor="bottleneck">What's your #1 bottleneck to growth right now? *</Label>
-                <Textarea
-                  id="bottleneck"
-                  required
-                  placeholder="Be specific. Is it answering calls? Scheduling? Follow-up? Something else?"
-                  value={formData.bottleneck}
-                  onChange={(e) => setFormData({ ...formData, bottleneck: e.target.value })}
-                  className="min-h-[100px]"
-                />
-              </div>
+                {/* Voicemail Result */}
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="voicemailResult">What happens when someone hits your voicemail? *</Label>
+                  <Select
+                    required
+                    value={formData.voicemailResult}
+                    onValueChange={(value) => setFormData({ ...formData, voicemailResult: value ?? "" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hang-up">Most hang up and call the next guy</SelectItem>
+                      <SelectItem value="leave-message">Some leave a message</SelectItem>
+                      <SelectItem value="dont-know">I don't know — I don't check stats</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* Commitment */}
-              <div className="space-y-2">
-                <Label htmlFor="commitment">If this works, can you commit $10K/year by Day 30? *</Label>
-                <Select
-                  required
-                  value={formData.commitment}
-                  onValueChange={(value) => setFormData({ ...formData, commitment: value ?? "" })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes-committed">Yes, I'm committed if results prove out</SelectItem>
-                    <SelectItem value="need-more-info">I need to understand the metrics first</SelectItem>
-                    <SelectItem value="not-sure">Not sure yet</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Why Partner */}
-              <div className="space-y-2">
-                <Label htmlFor="whyPartner">Why partner with us vs. just buying a product? *</Label>
-                <Textarea
-                  id="whyPartner"
-                  required
-                  placeholder="What does 'partnership' mean to you? Why commit vs. going month-to-month?"
-                  value={formData.whyPartner}
-                  onChange={(e) => setFormData({ ...formData, whyPartner: e.target.value })}
-                  className="min-h-[100px]"
-                />
+                {/* Timeline */}
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="timeline">If this works, when do you need it live? *</Label>
+                  <Select
+                    required
+                    value={formData.timeline}
+                    onValueChange={(value) => setFormData({ ...formData, timeline: value ?? "" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="asap">ASAP — bleeding money</SelectItem>
+                      <SelectItem value="this-month">This month</SelectItem>
+                      <SelectItem value="next-month">Next month</SelectItem>
+                      <SelectItem value="just-looking">Just looking for now</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {error && (
@@ -316,15 +256,15 @@ export default function ApplyPage() {
                 {submitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
+                    Running the numbers...
                   </>
                 ) : (
-                  "Submit Application →"
+                  "Show Me the Math →"
                 )}
               </Button>
 
               <p className="text-xs text-center text-muted-foreground">
-                You'll hear back within 24 hours. If it's a fit, we'll schedule a 15-minute discovery call.
+                We'll call within 24 hours with your missed-revenue estimate.
               </p>
             </form>
           </CardContent>
