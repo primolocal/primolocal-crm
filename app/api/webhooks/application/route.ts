@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "";
+
+// Email config from env vars
+const SMTP_HOST = process.env.SMTP_HOST || "smtp.gmail.com";
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || "587");
+const SMTP_USER = process.env.SMTP_USER || "";
+const SMTP_PASS = process.env.SMTP_PASS || "";
+const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || "tommy@primolocal.org";
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,6 +60,7 @@ export async function POST(req: NextRequest) {
       "not-sure": "Not sure",
     };
 
+    // Send Discord notification
     const discordMessage = {
       content: `${qualityEmoji} **${qualityLabel} Application** | Score: ${fitScore}/10`,
       embeds: [{
@@ -81,8 +90,49 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Send email notification
+    if (SMTP_USER && SMTP_PASS) {
+      const transporter = nodemailer.createTransport({
+        host: SMTP_HOST,
+        port: SMTP_PORT,
+        secure: SMTP_PORT === 465,
+        auth: {
+          user: SMTP_USER,
+          pass: SMTP_PASS,
+        },
+      });
+
+      const emailHtml = `
+        <h2>New Co-Founder Application — ${qualityLabel} (${fitScore}/10)</h2>
+        <p><strong>Business:</strong> ${businessName}</p>
+        <p><strong>Owner:</strong> ${ownerName}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+        <p><strong>Revenue:</strong> ${revenueLabels[revenue] || revenue}</p>
+        <p><strong>Current Setup:</strong> ${receptionist.replace(/-/g, " ")}</p>
+        <p><strong>Missed Calls:</strong> ${missedCallsLabels[missedCalls] || missedCalls}</p>
+        <p><strong>Commitment:</strong> ${commitmentLabels[commitment] || commitment}</p>
+        <hr/>
+        <p><strong>Bottleneck:</strong></p>
+        <p>${bottleneck.replace(/\n/g, "<br/>")}</p>
+        <hr/>
+        <p><strong>Why Partner:</strong></p>
+        <p>${whyPartner.replace(/\n/g, "<br/>")}</p>
+        <hr/>
+        <p><a href="mailto:${email}?subject=Re: Co-Founder Application — ${businessName}">Reply to applicant</a></p>
+      `;
+
+      await transporter.sendMail({
+        from: `"PrimoLocal Applications" <${SMTP_USER}>`,
+        to: NOTIFY_EMAIL,
+        subject: `[${qualityLabel}] ${businessName} — Co-Founder Application`,
+        html: emailHtml,
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Application webhook error:", error);
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }
