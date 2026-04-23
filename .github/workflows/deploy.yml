@@ -31,25 +31,21 @@ jobs:
           cd .next/standalone
           tar -czf ../../deploy.tar.gz .
 
-      - name: Copy deploy tarball
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.HOSTINGER_HOST }}
-          port: ${{ secrets.HOSTINGER_PORT }}
-          username: ${{ secrets.HOSTINGER_USERNAME }}
-          key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          source: "deploy.tar.gz"
-          target: "~/"
-          overwrite: true
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.HOSTINGER_PORT }} -t rsa ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -p ${{ secrets.HOSTINGER_PORT }} -t ed25519 ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Upload tarball
+        run: |
+          scp -P ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.tar.gz ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:~/
 
       - name: Extract and restart
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HOSTINGER_HOST }}
-          port: ${{ secrets.HOSTINGER_PORT }}
-          username: ${{ secrets.HOSTINGER_USERNAME }}
-          key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          script: |
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} '
             export PATH=/opt/alt/alt-nodejs24/root/usr/bin:$PATH
             cd ~/primolocal-app
             pkill -9 -f node || true
@@ -61,8 +57,9 @@ jobs:
             export SMTP_HOST=smtp.gmail.com
             export SMTP_PORT=587
             export SMTP_USER=tommy@primolocal.org
-            export SMTP_PASS='qjkw aqgq bzkq ojyz'
+            export SMTP_PASS="${{ secrets.HOSTINGER_EMAIL_PASS }}"
             export NOTIFY_EMAIL=tommy@primolocal.org
             setsid node server.js > server.log 2>&1 < /dev/null &
             sleep 5
             curl -s -o /dev/null -w "HTTP: %{http_code}\n" http://localhost:3000/
+          '
