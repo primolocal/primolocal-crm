@@ -36,16 +36,17 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p ${{ secrets.HOSTINGER_PORT }} -t rsa ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
-          ssh-keyscan -p ${{ secrets.HOSTINGER_PORT }} -t ed25519 ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.HOSTINGER_PORT }} -t ed25519 ${{ secrets.HOSTINGER_HOST }} 2>/dev/null >> ~/.ssh/known_hosts || true
 
       - name: Upload tarball
         run: |
-          scp -P ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.tar.gz ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:~/
+          scp -vvv -P ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.tar.gz ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:~/ 2>&1
 
       - name: Extract and restart
         run: |
-          ssh -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} '
+          ssh -vvv -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} '
             export PATH=/opt/alt/alt-nodejs24/root/usr/bin:$PATH
             cd ~/primolocal-app
             pkill -9 -f node || true
@@ -57,9 +58,9 @@ jobs:
             export SMTP_HOST=smtp.gmail.com
             export SMTP_PORT=587
             export SMTP_USER=tommy@primolocal.org
-            export SMTP_PASS="${{ secrets.HOSTINGER_EMAIL_PASS }}"
+            export SMTP_PASS="qjkw aqgq bzkq ojyz"
             export NOTIFY_EMAIL=tommy@primolocal.org
             setsid node server.js > server.log 2>&1 < /dev/null &
             sleep 5
             curl -s -o /dev/null -w "HTTP: %{http_code}\n" http://localhost:3000/
-          '
+          ' 2>&1
