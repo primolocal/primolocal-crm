@@ -31,22 +31,21 @@ jobs:
           cd .next/standalone
           tar -czf ../../deploy.tar.gz .
 
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          printf '%s' "${{ secrets.HOSTINGER_SSH_KEY }}" | tr -d '\r' > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/deploy_key
-          ssh-keyscan -p ${{ secrets.HOSTINGER_PORT }} -t ed25519 ${{ secrets.HOSTINGER_HOST }} 2>/dev/null >> ~/.ssh/known_hosts || true
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          log-public-key: false
+
+      - name: Add host to known_hosts
+        run: ssh-keyscan -p ${{ secrets.HOSTINGER_PORT }} -t ed25519 ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Upload tarball
-        run: |
-          scp -vvv -P ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.tar.gz ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:~/ 2>&1 || true
+        run: scp -P ${{ secrets.HOSTINGER_PORT }} deploy.tar.gz ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }}:~/
 
       - name: Extract and restart
         run: |
-          ssh -vvv -p ${{ secrets.HOSTINGER_PORT }} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} '
+          ssh -p ${{ secrets.HOSTINGER_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} '
             export PATH=/opt/alt/alt-nodejs24/root/usr/bin:$PATH
             cd ~/primolocal-app
             pkill -9 -f node || true
@@ -63,4 +62,4 @@ jobs:
             setsid node server.js > server.log 2>&1 < /dev/null &
             sleep 5
             curl -s -o /dev/null -w "HTTP: %{http_code}\n" http://localhost:3000/
-          ' 2>&1 || true
+          '
