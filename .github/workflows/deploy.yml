@@ -40,7 +40,7 @@ jobs:
 
       - name: Extract and restart
         run: |
-          sshpass -p "${{ secrets.HOSTINGER_PASSWORD }}" ssh -o StrictHostKeyChecking=no -p ${{ secrets.HOSTINGER_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} '
+          sshpass -p "${{ secrets.HOSTINGER_PASSWORD }}" ssh -o StrictHostKeyChecking=no -p ${{ secrets.HOSTINGER_PORT }} ${{ secrets.HOSTINGER_USERNAME }}@${{ secrets.HOSTINGER_HOST }} 'bash -s' << 'SCRIPT'
             export PATH=/opt/alt/alt-nodejs24/root/usr/bin:$PATH
             cd ~/primolocal-app
             pkill -9 -f node || true
@@ -52,9 +52,9 @@ jobs:
             export SMTP_HOST=smtp.gmail.com
             export SMTP_PORT=587
             export SMTP_USER=tommy@primolocal.org
-            export SMTP_PASS="qjkw aqgq bzkq ojyz"
+            export SMTP_PASS='qjkw aqgq bzkq ojyz'
             export NOTIFY_EMAIL=tommy@primolocal.org
-            setsid node server.js > server.log 2>&1 < /dev/null &
+            nohup node server.js > server.log 2>&1 &
             sleep 5
             curl -s -o /dev/null -w "HTTP: %{http_code}\n" http://localhost:3000/
-          '
+          SCRIPT
